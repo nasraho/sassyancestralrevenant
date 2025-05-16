@@ -15,7 +15,8 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'system',
-      content: 'you are a sassy ancestral revenant',
+      content:
+        'you are a sassy ancestral revenant',
       id: 'system-prompt',
     },
   ]);
@@ -94,6 +95,8 @@ export default function Home() {
 
   const speakText = async (text: string) => {
     try {
+      console.log('Sending text to speech API:', text);
+
       const response = await fetch('/api/speech', {
         method: 'POST',
         headers: {
@@ -104,21 +107,34 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Error response from speech API:', response.status, errorData);
         throw new Error(errorData.error || `Failed to generate speech: ${response.status}`);
       }
 
       const contentType = response.headers.get('Content-Type');
+      console.log('Response content type:', contentType);
+
       if (!contentType || !contentType.includes('audio/mpeg')) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Invalid response format:', errorData);
         throw new Error(errorData.error || 'Response was not audio format');
       }
 
       const audioBlob = await response.blob();
-      if (audioBlob.size === 0) throw new Error('Empty audio received from API');
 
+      if (audioBlob.size === 0) {
+        console.error('Empty audio blob received');
+        throw new Error('Empty audio received from API');
+      }
+
+      console.log('Audio blob received, size:', audioBlob.size);
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
-      audio.onerror = (e) => console.error('Error playing audio:', e);
+
+      audio.onerror = (e) => {
+        console.error('Error playing audio:', e);
+      };
+
       audio.play();
     } catch (error: any) {
       console.error('Error generating speech:', error);
@@ -156,9 +172,12 @@ export default function Home() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
 
       const assistantMessage = await response.json();
+
       setMessages((prev) => [
         ...prev,
         {
@@ -185,37 +204,103 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-indigo-900 text-neon font-mono">
-      <div className="relative container mx-auto max-w-5xl px-6 py-12">
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-gradient-to-tr from-fuchsia-600 to-cyan-400 rounded-full shadow-[0_0_60px_20px_rgba(255,0,255,0.4)] blur-2xl animate-pulse opacity-40"></div>
-        <div className="rounded-[2rem] border border-indigo-500/50 backdrop-blur-xl bg-black/30 shadow-2xl relative z-10 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        <div className="bg-white rounded-xl shadow-xl overflow-hidden">
           <div className="h-[700px] flex flex-col">
-            <div className="p-6 bg-gradient-to-r from-fuchsia-800 via-indigo-700 to-purple-900 border-b border-purple-500">
-              <div className="flex items-center justify-center relative">
-                <div className="absolute w-40 h-40 rounded-full bg-gradient-to-r from-purple-400 to-cyan-300 blur-2xl opacity-30 animate-spin-slow"></div>
-                <h1 className="text-4xl font-bold text-cyan-200 z-10">🌀 Portal Interface</h1>
-              </div>
-              <p className="text-center text-sm text-pink-300 italic mt-1">Channel the Sassy Ancestral Revenant</p>
+            <div className="p-4 bg-blue-50 border-b border-blue-200">
+              <h1 className="text-2xl font-semibold text-gray-800">AI Poet Chat</h1>
+              <p className="text-sm text-gray-600">Chat with Sassy Ancestral Revenant</p>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-purple-600/50 scrollbar-track-transparent">
-              {/* messages */}
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {messages.slice(1).map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex items-start space-x-2 ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  {message.role === 'assistant' && (
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Bot size={20} className="text-blue-600" />
+                    </div>
+                  )}
+
+                  <div
+                    className={`flex flex-col max-w-[70%] ${
+                      message.role === 'user' ? 'items-end' : 'items-start'
+                    }`}
+                  >
+                    <div
+                      className={`rounded-2xl p-4 ${
+                        message.role === 'user'
+                          ? 'bg-blue-500 text-white' + (message.isFloating ? ' animate-bounce' : '')
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
+
+                    {message.role === 'assistant' && (
+                      <button
+                        onClick={() => speakText(message.content)}
+                        className="mt-2 text-gray-500 hover:text-gray-700 transition-colors"
+                        aria-label="Text to speech"
+                      >
+                        <Volume2 size={16} />
+                      </button>
+                    )}
+
+                    {message.timestamp && (
+                      <span className="text-xs text-gray-500 mt-1">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </span>
+                    )}
+                  </div>
+
+                  {message.role === 'user' && (
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      <User size={20} className="text-gray-600" />
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex justify-start items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Bot size={20} className="text-blue-600" />
+                  </div>
+                  <div className="bg-gray-100 rounded-2xl p-4">
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 bg-black/70 border-t border-purple-600">
-              <form onSubmit={handleSubmit} className="flex items-center space-x-3">
+
+            <div className="p-4 bg-white border-t border-gray-200">
+              <form onSubmit={handleSubmit} className="flex items-center space-x-2">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Speak to the portal..."
-                  className="flex-1 p-3 bg-black/40 text-cyan-200 border border-fuchsia-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-pink-400"
+                  placeholder="Summon the Sassy Ancestral Revenant..."
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={isRecording ? stopRecording : startRecording}
-                  className={`p-3 rounded-full border transition-colors shadow-inner ${
-                    isRecording ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-indigo-800 text-cyan-200 hover:bg-indigo-700'
+                  className={`p-3 rounded-lg transition-colors ${
+                    isRecording
+                      ? 'bg-red-500 hover:bg-red-600 text-white'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   }`}
                   disabled={isLoading}
                 >
@@ -223,7 +308,7 @@ export default function Home() {
                 </button>
                 <button
                   type="submit"
-                  className="p-3 bg-cyan-400 text-black rounded-full hover:bg-cyan-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!input.trim() || isLoading}
                 >
                   <Send size={20} />
