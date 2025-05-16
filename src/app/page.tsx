@@ -185,32 +185,36 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-indigo-900 text-neon font-mono">
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="bg-black/40 rounded-2xl shadow-2xl border border-purple-500/40 backdrop-blur-xl">
+    <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-indigo-900 text-neon font-mono">
+      <div className="relative container mx-auto max-w-5xl px-6 py-12">
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-gradient-to-tr from-fuchsia-600 to-cyan-400 rounded-full shadow-[0_0_60px_20px_rgba(255,0,255,0.4)] blur-2xl animate-pulse opacity-40"></div>
+        <div className="rounded-[2rem] border border-indigo-500/50 backdrop-blur-xl bg-black/30 shadow-2xl relative z-10 overflow-hidden">
           <div className="h-[700px] flex flex-col">
-            <div className="p-6 bg-gradient-to-r from-indigo-700 to-purple-800 border-b border-indigo-500">
-              <h1 className="text-3xl font-bold text-cyan-300 tracking-wide uppercase">Neon Chat Portal</h1>
-              <p className="text-sm text-pink-300 italic">✨ Converse with the Sassy Ancestral Revenant ✨</p>
+            <div className="p-6 bg-gradient-to-r from-fuchsia-800 via-indigo-700 to-purple-900 border-b border-purple-500">
+              <div className="flex items-center justify-center relative">
+                <div className="absolute w-40 h-40 rounded-full bg-gradient-to-r from-purple-400 to-cyan-300 blur-2xl opacity-30 animate-spin-slow"></div>
+                <h1 className="text-4xl font-bold text-cyan-200 z-10">🌀 Portal Interface</h1>
+              </div>
+              <p className="text-center text-sm text-pink-300 italic mt-1">Channel the Sassy Ancestral Revenant</p>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-transparent">
-              {/* messages map here (no changes to logic) */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-purple-600/50 scrollbar-track-transparent">
+              {/* messages */}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 bg-black/60 border-t border-indigo-500">
+            <div className="p-4 bg-black/70 border-t border-purple-600">
               <form onSubmit={handleSubmit} className="flex items-center space-x-3">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Summon the revenant..."
-                  className="flex-1 p-3 bg-black/40 text-cyan-200 border border-indigo-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-pink-300"
+                  placeholder="Speak to the portal..."
+                  className="flex-1 p-3 bg-black/40 text-cyan-200 border border-fuchsia-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-pink-400"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={isRecording ? stopRecording : startRecording}
-                  className={`p-3 rounded-full border transition-colors ${
+                  className={`p-3 rounded-full border transition-colors shadow-inner ${
                     isRecording ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-indigo-800 text-cyan-200 hover:bg-indigo-700'
                   }`}
                   disabled={isLoading}
@@ -219,7 +223,7 @@ export default function Home() {
                 </button>
                 <button
                   type="submit"
-                  className="p-3 bg-cyan-500 text-black rounded-full hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-3 bg-cyan-400 text-black rounded-full hover:bg-cyan-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!input.trim() || isLoading}
                 >
                   <Send size={20} />
